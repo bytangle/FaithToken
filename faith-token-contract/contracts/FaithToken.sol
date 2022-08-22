@@ -16,15 +16,41 @@ import "./ERC20Interface.sol";
      uint private totalSupply_;
      string private name_;
      string private symbol_;
-     uint private decimals_;
+     uint8 private decimals_;
+
+    /// @dev error to emit when zero address is provided
+     error ZeroAddrException();
+
+     error InsufficientBalance(uint _balance, uint _requestedAmount);
+
+    /**
+     * @dev checks to see that provided address is not 0x00
+     * @param _addr address provided to the function
+     */
+     modifier isNotZeroAddr(address _addr) {
+         if(_addr == address(0)) revert ZeroAddrException();
+         _;
+     }
+
+    /**
+     * @dev checks for enough balance before transfer
+     * @param _addr address of the entity requesting a transfer
+     * @param _requestedAmount amount to be transferred from _addr balance
+     */
+     modifier hasEnoughBalance(address _addr, uint _requestedAmount) {
+         uint bal = balances_[_addr];
+         if (bal < _requestedAmount) revert InsufficientBalance(bal, _requestedAmount);
+         _;
+     }
 
      constructor(
          string memory _name, 
          string memory _symbol, 
-         uint _decimals,  
+         uint8 _decimals,  
          uint _initialOwnerBal) {
          name_ = _name;
          symbol_ = _symbol;
+         decimals_ = _decimals;
          balances_[msg.sender] = _initialOwnerBal;
      }
 
@@ -63,5 +89,82 @@ import "./ERC20Interface.sol";
      */
      function balanceOf(address _owner) public view returns (uint) {
          return balances_[_owner];
+     }
+
+    /**
+     @notice returns the number of decimal places of the token (e.g 5 means .xxxxxx)
+     @dev returns the token decimals
+     @return decimals of the token 
+     */
+     function decimals() public view returns (uint8) {
+         return decimals_;
+     }
+
+     function allowance(address _owner, address _spender) 
+        public view isNotZeroAddr(_owner) isNotZeroAddr(_spender) returns (uint allowances) {
+            allowances = allowances_[_owner][_spender];
+        }
+
+    /**
+     * @notice transfer the token to the address provided
+     * @dev transfer _value to _to address
+     * @param _to address to be transferred to
+     * @param _value amount to be transferred
+     * @return success status of the transfer operation
+     */
+     function transfer(address _to, uint _value) public returns (bool) {
+        return _transfer(msg.sender, _to, _value);
+     }
+
+    /**
+     * @notice transfer the token to the address provided
+     * @dev transfer _value to _to address
+     * @param _from address of the source account
+     * @param _to address to be transferred to
+     * @param _value amount to be transferred
+     * @return success status of the transfer operation
+     */
+     function transferFrom(address _from, address _to, uint _value) public returns (bool) {
+        return _transfer(_from, _to, _value);
+     }
+
+    /**
+     * @notice transfer the token to the address provided
+     * @dev transfer _value to _to address
+     * @param _from address of the source account
+     * @param _to address to be transferred to
+     * @param _value amount to be transferred
+     * @return success status of the transfer operation
+     */
+     function _transfer(address _from, address _to, uint _value) private
+        isNotZeroAddr(_from) isNotZeroAddr(_to) hasEnoughBalance(_from, _value) returns (bool success) {
+            balances_[_from] -= _value;
+            balances_[_to] += _value;
+            success = true;
+            emit Transfer(_from, _to, _value); // emit event
+     }
+
+    /**
+     * @dev this function allocates specific allowance to spender from owner's balance
+     * @param _spender address of the spender
+     * @param _value amount to be allocated
+     * @return success status [bool]
+     */
+     function approve(address _spender, uint _value) public returns (bool) {
+         return _approve(msg.sender, _spender, _value);
+     }
+
+    /**
+     * @dev this function allocates specific allowance to spender from owner's balance
+     * @param _owner address of the owner
+     * @param _spender address of the spender
+     * @param _value amount to be allocated
+     * @return success status [bool]
+     */
+     function _approve(address _owner, address _spender, uint _value) 
+        private isNotZeroAddr(_owner) isNotZeroAddr(_spender) returns (bool success) {
+            allowances_[_owner][_spender] = _value;
+            success = true;
+            emit Approval(_owner, _spender, _value);
      }
  }
