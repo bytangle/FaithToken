@@ -21,6 +21,11 @@ import "./ERC20Interface.sol";
     /// @dev error to emit when zero address is provided
      error ZeroAddrException();
 
+    /**
+     * @dev error describing insufficient balance
+     * @param _balance balance of the account
+     * @param _requestedAmount amount requested
+     */
      error InsufficientBalance(uint _balance, uint _requestedAmount);
 
     /**
