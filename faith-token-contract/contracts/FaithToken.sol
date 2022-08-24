@@ -130,6 +130,8 @@ import "./ERC20Interface.sol";
      * @return success status of the transfer operation
      */
      function transferFrom(address _from, address _to, uint _value) public returns (bool) {
+        // ensure the amount to be transferred is exactly or below the approved allowance
+        require(_value <= allowances_[_from][msg.sender]); 
         return _transfer(_from, _to, _value);
      }
 

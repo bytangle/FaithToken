@@ -1,6 +1,6 @@
 const FaithToken = artifacts.require("FaithToken");
 
-/* Migration script to deploy token */
+/* deploy token */
 module.exports = (deployer) => {
     deployer.deploy(
         FaithToken,
