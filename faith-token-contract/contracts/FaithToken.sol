@@ -162,6 +162,31 @@ import "./ERC20Interface.sol";
      }
 
     /**
+     * @dev increase already approved allowance
+     * @param _spender beneficiary of the allowance
+     * @param _value amount to be added to the current allowance
+     * @return success status
+     */
+     function increaseAllowance(address _spender, uint _value) public returns (bool) {
+         uint currentAllowance = allowances_[msg.sender][_spender];
+         return _approve(msg.sender, _spender, _value + currentAllowance);
+     }
+
+    /**
+     * @dev decrease already approved allowance
+     * @param _spender beneficiary of the allowance
+     * @param _value amount ot be deducted from the current allowance of the beneficiary
+     * @return success status
+     */
+     function decreaseAllowance(address _spender, uint _value) public returns (bool) {
+         uint currentAllowance = allowances_[msg.sender][_spender];
+
+         require(_value <= currentAllowance); // cannot deduct more than what's already approved
+
+         return _approve(msg.sender, _spender, currentAllowance - _value);
+     }
+
+    /**
      * @dev this function allocates specific allowance to spender from owner's balance
      * @param _owner address of the owner
      * @param _spender address of the spender
