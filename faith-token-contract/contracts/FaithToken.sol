@@ -174,4 +174,31 @@ import "./ERC20Interface.sol";
             success = true;
             emit Approval(_owner, _spender, _value);
      }
+
+    /**
+     * @dev add _value to the given _acct 
+     * and emit necessary event but with a 0x00 address as the source
+     * @param _acct address whose balance is to be increased by _value
+     * @param _value amount to be added
+     * @return success status of the minting
+     */
+     function _mint(address _acct, uint _value) internal isNotZeroAddr(_acct) returns (bool success) {
+        totalSupply_ += _value;
+        balances_[_acct] += _value;
+        success = true;
+        emit Transfer(address(0), _acct, _value); // emit event
+     }
+
+    /**
+     * @dev deduct _value from the given _acct
+     * @param _acct address of the balance to be deducted
+     * @param _value amount to be deducted from _acct
+     * @return success status of the minting
+     */
+     function _burn(address _acct, uint _value) internal isNotZeroAddr(_acct) returns (bool success) {
+         totalSupply_ -= _value;
+         balances_[_acct] -= _value;
+         success = true;
+         emit Transfer(_acct, address(0), _value); // emit event
+     }
  }
